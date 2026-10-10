@@ -14,9 +14,9 @@
 	<name>stratifyai</name>
 	<description>StratifyAI Project</description>
 
-	<properties>
-		<java.version>25</java.version>
-	</properties>
+<properties>
+    <java.version>21</java.version>
+</properties>
 
 	<dependencies>
 
