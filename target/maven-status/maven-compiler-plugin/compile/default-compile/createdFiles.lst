@@ -1,0 +1,7 @@
+com\stratifyai\AnalysisController.class
+com\stratifyai\StratifyaiApplication.class
+com\stratifyai\ForecastModel.class
+com\stratifyai\PatternRecognizer.class
+com\stratifyai\DataProcessor.class
+com\stratifyai\AdvancedForecastModel.class
+com\stratifyai\BaseModel.class

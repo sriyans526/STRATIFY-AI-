@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StratifyAI — Intelligent Forecasting Platform</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
+
+        :root {
+            --bg: #080b14;
+            --bg2: #0d1117;
+            --card: #111827;
+            --border: #1f2937;
+            --blue: #3b82f6;
+            --purple: #8b5cf6;
+            --green: #10b981;
+            --red: #ef4444;
+            --yellow: #f59e0b;
+            --text: #f9fafb;
+            --muted: #6b7280;
+            --subtle: #374151;
+        }
+
+        body { background: var(--bg); color: var(--text); min-height: 100vh; }
+
+        /* HEADER */
+        .header {
+            background: rgba(13, 17, 23, 0.95);
+            border-bottom: 1px solid var(--border);
+            padding: 0 40px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .logo { display: flex; align-items: center; gap: 12px; }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--blue), var(--purple));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 16px;
+            color: white;
+        }
+
+        .logo-text h1 { font-size: 18px; font-weight: 700; color: var(--text); }
+        .logo-text span { font-size: 11px; color: var(--muted); }
+
+        .nav { display: flex; align-items: center; gap: 24px; }
+
+        .nav-item { color: var(--muted); font-size: 13px; font-weight: 500; cursor: pointer; transition: color 0.2s; }
+        .nav-item:hover { color: var(--text); }
+
+        .nav-badge {
+            background: linear-gradient(135deg, var(--blue), var(--purple));
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* HERO */
+        .hero {
+            text-align: center;
+            padding: 80px 20px 60px;
+            background: radial-gradient(ellipse at top, #0d1b3e 0%, var(--bg) 70%);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            color: var(--blue);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 24px;
+        }
+
+        .hero h2 {
+            font-size: 48px;
+            font-weight: 800;
+            line-height: 1.15;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, #ffffff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            color: var(--muted);
+            font-size: 16px;
+            max-width: 500px;
+            margin: 0 auto 40px;
+            line-height: 1.6;
+        }
+
+        .hero-stats {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 40px;
+        }
+
+        .hero-stat h3 { font-size: 28px; font-weight: 800; color: var(--blue); }
+        .hero-stat p { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+        /* UPLOAD */
+        .main { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
+
+        .upload-section {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 48px;
+            text-align: center;
+            margin-bottom: 32px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-section::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--blue), var(--purple));
+        }
+
+        .upload-section h2 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+        .upload-section p { color: var(--muted); font-size: 14px; margin-bottom: 32px; }
+
+        .format-badges { display: flex; justify-content: center; gap: 8px; margin-bottom: 32px; }
+
+        .format-badge {
+            background: var(--subtle);
+            color: var(--text);
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .upload-area {
+            border: 2px dashed var(--border);
+            border-radius: 16px;
+            padding: 48px;
+            cursor: pointer;
+            margin-bottom: 24px;
+            transition: all 0.3s;
+            background: var(--bg2);
+        }
+
+        .upload-area:hover { border-color: var(--blue); background: rgba(59,130,246,0.05); }
+        .upload-area input { display: none; }
+
+        .upload-icon-wrap {
+            width: 72px;
+            height: 72px;
+            background: linear-gradient(135deg, rgba(59,130,246,0.2), rgba(139,92,246,0.2));
+            border: 1px solid rgba(59,130,246,0.3);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            margin: 0 auto 16px;
+        }
+
+        .upload-area label { cursor: pointer; }
+        .upload-area h3 { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
+        .upload-area p { color: var(--muted); font-size: 13px; margin-bottom: 0; }
+
+        .file-name {
+            margin-top: 12px;
+            color: var(--blue);
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--blue), var(--purple));
+            color: white;
+            border: none;
+            padding: 14px 64px;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            letter-spacing: 0.3px;
+        }
+
+        .btn:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(59,130,246,0.3); }
+
+        /* LOADING */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 48px;
+        }
+
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 3px solid var(--border);
+            border-top: 3px solid var(--blue);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading p { color: var(--muted); font-size: 15px; }
+
+        /* DASHBOARD */
+        .dashboard { display: none; }
+
+        .file-info-bar {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px 24px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .file-info-bar .fi-icon {
+            width: 44px;
+            height: 44px;
+            background: rgba(59,130,246,0.1);
+            border: 1px solid rgba(59,130,246,0.2);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .fi-text h3 { font-size: 15px; font-weight: 600; }
+        .fi-text p { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+        .fi-badge {
+            margin-left: auto;
+            background: linear-gradient(135deg, var(--blue), var(--purple));
+            color: white;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            padding: 24px;
+            border-radius: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 2px;
+        }
+
+        .stat-card:nth-child(1)::after { background: var(--blue); }
+        .stat-card:nth-child(2)::after { background: var(--purple); }
+        .stat-card:nth-child(3)::after { background: var(--green); }
+        .stat-card:nth-child(4)::after { background: var(--yellow); }
+
+        .stat-icon {
+            font-size: 24px;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .stat-card h3 {
+            color: var(--muted);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .stat-card p { font-size: 32px; font-weight: 800; }
+
+        .panel {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .panel-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        .panel-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .icon-blue { background: rgba(59,130,246,0.15); }
+        .icon-purple { background: rgba(139,92,246,0.15); }
+
+        .chart-tabs { display: flex; gap: 6px; }
+
+        .tab-btn {
+            background: var(--subtle);
+            color: var(--muted);
+            border: none;
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, var(--blue), var(--purple));
+            color: white;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .chart-card {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            padding: 20px;
+            border-radius: 12px;
+        }
+
+        .chart-card h3 {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--muted);
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .chart-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .table-controls { display: flex; gap: 10px; }
+
+        .search-box {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            outline: none;
+            width: 200px;
+            transition: border-color 0.2s;
+        }
+
+        .search-box:focus { border-color: var(--blue); }
+        .search-box::placeholder { color: var(--muted); }
+
+        .download-btn {
+            background: rgba(59,130,246,0.1);
+            color: var(--blue);
+            border: 1px solid rgba(59,130,246,0.3);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .download-btn:hover { background: rgba(59,130,246,0.2); }
+
+        table { width: 100%; border-collapse: collapse; }
+
+        th {
+            background: var(--bg);
+            color: var(--muted);
+            padding: 12px 16px;
+            text-align: left;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        th:hover { color: var(--blue); }
+
+        td {
+            padding: 14px 16px;
+            border-bottom: 1px solid rgba(31,41,55,0.5);
+            font-size: 13px;
+            color: #d1d5db;
+        }
+
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: rgba(59,130,246,0.03); }
+
+        .trend-up { color: var(--green); font-weight: 600; }
+        .trend-down { color: var(--red); font-weight: 600; }
+        .trend-stable { color: var(--yellow); font-weight: 600; }
+
+        .pred-badge {
+            background: rgba(59,130,246,0.1);
+            color: var(--blue);
+            border: 1px solid rgba(59,130,246,0.2);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 12px;
+        }
+
+        .col-name {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .col-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .error {
+            display: none;
+            background: rgba(239,68,68,0.1);
+            border: 1px solid rgba(239,68,68,0.3);
+            color: var(--red);
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-top: 16px;
+            font-size: 14px;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 32px;
+            color: var(--muted);
+            font-size: 12px;
+            border-top: 1px solid var(--border);
+            margin-top: 40px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+    <div class="logo">
+        <div class="logo-icon">S</div>
+        <div class="logo-text">
+            <h1>StratifyAI</h1>
+            <span>Intelligent Forecasting Platform</span>
+        </div>
+    </div>
+    <div class="nav">
+        <span class="nav-item">Dashboard</span>
+        <span class="nav-item">Analytics</span>
+        <span class="nav-item">Reports</span>
+        <span class="nav-badge">v2.0 Beta</span>
+    </div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+    <div class="hero-badge">
+        ⚡ AI-Powered Data Analysis
+    </div>
+    <h2>Turn Raw Data Into<br/>Actionable Insights</h2>
+    <p>Upload any CSV or Excel file and instantly get pattern recognition, trend analysis and intelligent predictions</p>
+
+    <div class="hero-stats">
+        <div class="hero-stat">
+            <h3>4</h3>
+            <p>OOP Concepts</p>
+        </div>
+        <div class="hero-stat">
+            <h3>3</h3>
+            <p>File Formats</p>
+        </div>
+        <div class="hero-stat">
+            <h3>∞</h3>
+            <p>Data Columns</p>
+        </div>
+        <div class="hero-stat">
+            <h3>2x</h3>
+            <p>Forecast Models</p>
+        </div>
+    </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+    <!-- UPLOAD -->
+    <div class="upload-section">
+        <h2>Upload Your Data File</h2>
+        <p>Supports CSV, Excel and Text files — any number of columns</p>
+
+        <div class="format-badges">
+            <span class="format-badge">📊 CSV</span>
+            <span class="format-badge">📗 XLSX</span>
+            <span class="format-badge">📄 TXT</span>
+        </div>
+
+        <div class="upload-area" id="uploadArea">
+            <input type="file" id="csvFile" accept=".csv,.xlsx,.txt"/>
+            <label for="csvFile">
+                <div class="upload-icon-wrap">📂</div>
+                <h3>Drop your file here or click to browse</h3>
+                <p>Maximum file size: 10MB</p>
+            </label>
+            <div class="file-name" id="fileName"></div>
+        </div>
+
+        <button class="btn" onclick="analyzeData()">⚡ Run Analysis</button>
+        <div class="error" id="error"></div>
+    </div>
+
+    <!-- LOADING -->
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p>Analyzing your data with AI models...</p>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div class="dashboard" id="dashboard">
+
+        <!-- FILE INFO -->
+        <div class="file-info-bar">
+            <div class="fi-icon">📄</div>
+            <div class="fi-text">
+                <h3 id="infoFileName">-</h3>
+                <p id="infoDetails">-</p>
+            </div>
+            <div class="fi-badge" id="fileTypeBadge">-</div>
+        </div>
+
+        <!-- STATS -->
+        <div class="stats-row">
+            <div class="stat-card">
+                <span class="stat-icon">📋</span>
+                <h3>Total Rows</h3>
+                <p id="totalRows">-</p>
+            </div>
+            <div class="stat-card">
+                <span class="stat-icon">📊</span>
+                <h3>Columns</h3>
+                <p id="totalColumns">-</p>
+            </div>
+            <div class="stat-card">
+                <span class="stat-icon">🔍</span>
+                <h3>Analyzed</h3>
+                <p id="colsAnalyzed">-</p>
+            </div>
+            <div class="stat-card">
+                <span class="stat-icon">📈</span>
+                <h3>Rising Trends</h3>
+                <p id="trendsFound">-</p>
+            </div>
+        </div>
+
+        <!-- CHARTS -->
+        <div class="panel">
+            <div class="panel-header">
+                <div class="panel-title">
+                    <div class="panel-icon icon-blue">📈</div>
+                    Data Visualization
+                </div>
+                <div class="chart-tabs">
+                    <button class="tab-btn active" onclick="switchChart('bar', this)">Bar</button>
+                    <button class="tab-btn" onclick="switchChart('line', this)">Line</button>
+                    <button class="tab-btn" onclick="switchChart('pie', this)">Pie</button>
+                </div>
+            </div>
+            <div class="charts-grid" id="chartsGrid"></div>
+        </div>
+
+        <!-- TABLE -->
+        <div class="panel">
+            <div class="panel-header">
+                <div class="panel-title">
+                    <div class="panel-icon icon-purple">📋</div>
+                    Analysis Report
+                </div>
+                <div class="table-controls">
+                    <input type="text" class="search-box" placeholder="Search column..." oninput="filterTable(this.value)"/>
+                    <button class="download-btn" onclick="downloadReport()">⬇ Export CSV</button>
+                </div>
+            </div>
+            <table id="analysisTable">
+                <thead>
+                    <tr>
+                        <th onclick="sortTable(0)">Column ↕</th>
+                        <th onclick="sortTable(1)">Average ↕</th>
+                        <th onclick="sortTable(2)">Min ↕</th>
+                        <th onclick="sortTable(3)">Max ↕</th>
+                        <th onclick="sortTable(4)">Sum ↕</th>
+                        <th onclick="sortTable(5)">Pattern ↕</th>
+                        <th>Prediction</th>
+                    </tr>
+                </thead>
+                <tbody id="analysisBody"></tbody>
+            </table>
+        </div>
+
+    </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+    StratifyAI v2.0 — Built with Java Spring Boot • Pattern Recognition & Intelligent Forecasting
+</div>
+
+<script>
+    let charts = [];
+    let currentChartType = 'bar';
+    let globalData = null;
+
+    const colors = ['#3b82f6','#8b5cf6','#10b981','#f59e0b','#ef4444','#06b6d4','#ec4899','#84cc16'];
+
+    document.getElementById('csvFile').addEventListener('change', function() {
+        if (this.files[0]) {
+            document.getElementById('fileName').textContent = '✅ ' + this.files[0].name;
+        }
+    });
+
+    async function analyzeData() {
+        let fileInput = document.getElementById('csvFile');
+        if (!fileInput.files[0]) { alert('Please select a file first!'); return; }
+
+        document.getElementById('loading').style.display = 'block';
+        document.getElementById('dashboard').style.display = 'none';
+        document.getElementById('error').style.display = 'none';
+
+        let formData = new FormData();
+        formData.append('file', fileInput.files[0]);
+
+        try {
+            let response = await fetch('http://localhost:8080/analyze', { method: 'POST', body: formData });
+            let data = await response.json();
+            document.getElementById('loading').style.display = 'none';
+
+            if (data.error) {
+                document.getElementById('error').style.display = 'block';
+                document.getElementById('error').textContent = '❌ ' + data.error;
+                return;
+            }
+
+            globalData = data;
+            renderDashboard(data);
+
+        } catch (err) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error').style.display = 'block';
+            document.getElementById('error').textContent = '❌ Cannot connect to server! Make sure Spring Boot is running on port 8080.';
+        }
+    }
+
+    function renderDashboard(data) {
+        document.getElementById('infoFileName').textContent = data.fileName;
+        document.getElementById('infoDetails').textContent = `${data.totalRows} rows × ${data.totalColumns} columns`;
+        document.getElementById('fileTypeBadge').textContent = data.fileType;
+        document.getElementById('totalRows').textContent = data.totalRows;
+        document.getElementById('totalColumns').textContent = data.totalColumns;
+        document.getElementById('colsAnalyzed').textContent = Object.keys(data.analysis).length;
+        document.getElementById('trendsFound').textContent = Object.values(data.analysis).filter(c => c.pattern.includes('↑')).length;
+
+        renderCharts(data, currentChartType);
+        renderTable(data);
+        document.getElementById('dashboard').style.display = 'block';
+    }
+
+    function renderCharts(data, type) {
+        charts.forEach(c => c.destroy());
+        charts = [];
+        document.getElementById('chartsGrid').innerHTML = '';
+
+        let ci = 0;
+        for (let [col, colData] of Object.entries(data.analysis)) {
+            let color = colors[ci % colors.length]; ci++;
+
+            let div = document.createElement('div');
+            div.className = 'chart-card';
+            div.innerHTML = `
+                <h3>
+                    <span class="chart-dot" style="background:${color}"></span>
+                    ${col}
+                </h3>
+                <canvas id="chart_${col.replace(/[^a-zA-Z0-9]/g,'_')}"></canvas>`;
+            document.getElementById('chartsGrid').appendChild(div);
+
+            let ctx = document.getElementById(`chart_${col.replace(/[^a-zA-Z0-9]/g,'_')}`).getContext('2d');
+            let chart = new Chart(ctx, {
+                type: type,
+                data: {
+                    labels: colData.values.map((_, i) => `R${i+1}`),
+                    datasets: [{
+                        label: col,
+                        data: colData.values,
+                        backgroundColor: type === 'pie'
+                            ? colors.slice(0, colData.values.length).map(c => c + 'cc')
+                            : color + '30',
+                        borderColor: type === 'pie' ? colors.slice(0, colData.values.length) : color,
+                        borderWidth: 2,
+                        borderRadius: type === 'bar' ? 6 : 0,
+                        tension: 0.4,
+                        fill: false,
+                        pointBackgroundColor: color,
+                        pointRadius: type === 'line' ? 4 : 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: type === 'pie', labels: { color: '#9ca3af', font: { size: 11 } } }
+                    },
+                    scales: type === 'pie' ? {} : {
+                        x: { ticks: { color: '#6b7280', font: { size: 10 } }, grid: { color: '#1f2937' } },
+                        y: { ticks: { color: '#6b7280', font: { size: 10 } }, grid: { color: '#1f2937' } }
+                    }
+                }
+            });
+            charts.push(chart);
+        }
+    }
+
+    function renderTable(data) {
+        document.getElementById('analysisBody').innerHTML = '';
+        let ci = 0;
+        for (let [col, colData] of Object.entries(data.analysis)) {
+            let color = colors[ci % colors.length]; ci++;
+            let trendClass = colData.pattern.includes('↑') ? 'trend-up' :
+                             colData.pattern.includes('↓') ? 'trend-down' : 'trend-stable';
+            document.getElementById('analysisBody').innerHTML += `<tr>
+                <td><div class="col-name"><span class="col-dot" style="background:${color}"></span>${col}</div></td>
+                <td>${colData.average}</td>
+                <td>${colData.min}</td>
+                <td>${colData.max}</td>
+                <td>${colData.sum}</td>
+                <td class="${trendClass}">${colData.pattern}</td>
+                <td><span class="pred-badge">${colData.prediction}</span></td>
+            </tr>`;
+        }
+    }
+
+    function switchChart(type, btn) {
+        currentChartType = type;
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        if (globalData) renderCharts(globalData, type);
+    }
+
+    function filterTable(q) {
+        document.querySelectorAll('#analysisBody tr').forEach(row => {
+            row.style.display = row.textContent.toLowerCase().includes(q.toLowerCase()) ? '' : 'none';
+        });
+    }
+
+    function sortTable(col) {
+        let tbody = document.getElementById('analysisBody');
+        let rows = Array.from(tbody.querySelectorAll('tr'));
+        rows.sort((a, b) => {
+            let aVal = a.cells[col].textContent.trim();
+            let bVal = b.cells[col].textContent.trim();
+            let aNum = parseFloat(aVal), bNum = parseFloat(bVal);
+            return (!isNaN(aNum) && !isNaN(bNum)) ? aNum - bNum : aVal.localeCompare(bVal);
+        });
+        rows.forEach(r => tbody.appendChild(r));
+    }
+
+    function downloadReport() {
+        if (!globalData) return;
+        let csv = 'Column,Average,Min,Max,Sum,Pattern,Prediction\n';
+        for (let [col, d] of Object.entries(globalData.analysis)) {
+            csv += `${col},${d.average},${d.min},${d.max},${d.sum},${d.pattern},${d.prediction}\n`;
+        }
+        let a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
+        a.download = 'StratifyAI_Report.csv';
+        a.click();
+    }
+</script>
+
+</body>
+</html>
