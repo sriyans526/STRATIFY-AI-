@@ -1,23 +1,12 @@
 package com.stratifyai;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellType;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.http.ResponseEntity;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import java.util.*;
+import java.io.*;
 
 @RestController
 @CrossOrigin(origins = "*")
@@ -27,8 +16,31 @@ public class AnalysisController {
     public ResponseEntity<Map<String, Object>> analyzeData(
             @RequestParam("file") MultipartFile file) {
 
+        // Security Check 1 - Empty file check
+        if (file.isEmpty()) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("error", "File is empty!");
+            return ResponseEntity.badRequest().body(error);
+        }
+
+        // Security Check 2 - File size limit (5MB max)
+        if (file.getSize() > 5 * 1024 * 1024) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("error", "File too large! Maximum size is 5MB.");
+            return ResponseEntity.badRequest().body(error);
+        }
+
+        // Security Check 3 - File type validation
+        String fileName = file.getOriginalFilename().toLowerCase();
+        if (!fileName.endsWith(".csv") &&
+            !fileName.endsWith(".xlsx") &&
+            !fileName.endsWith(".txt")) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("error", "Invalid file type! Only CSV, XLSX and TXT allowed.");
+            return ResponseEntity.badRequest().body(error);
+        }
+
         try {
-            String fileName = file.getOriginalFilename().toLowerCase();
             Map<String, List<Double>> columnData = new LinkedHashMap<>();
 
             // CSV file
@@ -77,11 +89,6 @@ public class AnalysisController {
                     }
                 }
                 workbook.close();
-
-            } else {
-                Map<String, Object> error = new HashMap<>();
-                error.put("error", "Unsupported file type! Please upload CSV, TXT or XLSX file.");
-                return ResponseEntity.badRequest().body(error);
             }
 
             // Analyze each column
@@ -111,17 +118,22 @@ public class AnalysisController {
                 for (int i = 0; i < values.size(); i++) {
                     intData[i] = values.get(i).intValue();
                 }
-                BaseModel model = new AdvancedForecastModel();
-                int prediction = model.predict(intData);
+
+                BaseModel simple = new ForecastModel();
+                BaseModel advanced = new AdvancedForecastModel();
+                int simplePrediction = simple.predict(intData);
+                int advancedPrediction = advanced.predict(intData);
 
                 Map<String, Object> colAnalysis = new LinkedHashMap<>();
                 colAnalysis.put("average", Math.round(avg * 100.0) / 100.0);
                 colAnalysis.put("max", max);
                 colAnalysis.put("min", min);
                 colAnalysis.put("pattern", pattern);
-                colAnalysis.put("prediction", prediction);
+                colAnalysis.put("simplePrediction", simplePrediction);
+                colAnalysis.put("advancedPrediction", advancedPrediction);
                 colAnalysis.put("values", values);
                 colAnalysis.put("sum", Math.round(sum * 100.0) / 100.0);
+                colAnalysis.put("prediction", advancedPrediction);
 
                 analysis.put(col, colAnalysis);
             }
