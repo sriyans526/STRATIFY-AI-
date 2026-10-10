@@ -1,0 +1,8 @@
+{
+  "deploy": {
+    "goal": "package -DskipTests"
+  },
+  "hooks": {
+    "postDeploy": "java -jar target/stratifyai-0.0.1-SNAPSHOT.jar"
+  }
+}
